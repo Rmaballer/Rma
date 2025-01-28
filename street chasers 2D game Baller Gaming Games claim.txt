@@ -1,0 +1,175 @@
+import pygame
+import time
+import random
+
+WIDTH, HEIGHT = 800, 600
+PLAYER_WIDTH, PLAYER_HEIGHT = 40, 60
+CRIMINAL_WIDTH, CRIMINAL_HEIGHT = 40, 60
+ROCK_WIDTH, ROCK_HEIGHT = 40, 40
+POINT_SIZE = 10
+SPEED_INCREASE = 0.1  # Player speed increases every 10 points
+BACKGROUND_COLOR = (0, 0, 0)
+ROCK_COLOR = (139, 69, 19)
+PLAYER_COLOR = (0, 0, 255)
+CRIMINAL_COLOR = (255, 0, 0)
+POINT_COLOR = (0, 255, 0)
+
+WIN = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Police Chase Game")
+
+player = pygame.Rect(WIDTH // 2 - PLAYER_WIDTH // 2, HEIGHT - PLAYER_HEIGHT - 10, PLAYER_WIDTH, PLAYER_HEIGHT)
+criminal = pygame.Rect(WIDTH // 2 - CRIMINAL_WIDTH // 2, 50, CRIMINAL_WIDTH, CRIMINAL_HEIGHT)
+player_speed = 3
+criminal_speed = 3
+points_collected = 0
+
+rocks = []
+points = []
+rock_speed = 5
+rock_spawn_time = 2000
+point_spawn_time = 1000
+last_rock_spawn = pygame.time.get_ticks()
+last_point_spawn = pygame.time.get_ticks()
+
+running = True
+game_over = False
+player_tripped = False
+criminal_tripped = False
+player_trip_time = 0
+criminal_trip_time = 0
+
+def spawn_rock():
+    x = random.randint(100, WIDTH - 100)
+    rock = pygame.Rect(x, -ROCK_HEIGHT, ROCK_WIDTH, ROCK_HEIGHT)
+    return rock
+
+def spawn_point():
+    x = random.randint(100, WIDTH - 100)
+    point = pygame.Rect(x, -POINT_SIZE, POINT_SIZE, POINT_SIZE)
+    return point
+
+def check_collision(rect1, rect2):
+    return rect1.colliderect(rect2)
+
+def reset_game():
+    global player, criminal, points_collected, player_speed, criminal_speed, rocks, points
+    player = pygame.Rect(WIDTH // 2 - PLAYER_WIDTH // 2, HEIGHT - PLAYER_HEIGHT - 10, PLAYER_WIDTH, PLAYER_HEIGHT)
+    criminal = pygame.Rect(WIDTH // 2 - CRIMINAL_WIDTH // 2, 50, CRIMINAL_WIDTH, CRIMINAL_HEIGHT)
+    points_collected = 0
+    player_speed = 3
+    criminal_speed = 3
+    rocks = []
+    points = []
+    return True
+
+def draw():
+    WIN.fill(BACKGROUND_COLOR)
+    pygame.draw.rect(WIN, PLAYER_COLOR, player)
+    pygame.draw.rect(WIN, CRIMINAL_COLOR, criminal)
+
+    for rock in rocks:
+        pygame.draw.rect(WIN, ROCK_COLOR, rock)
+
+    for point in points:
+        pygame.draw.rect(WIN, POINT_COLOR, point)
+
+    pygame.display.update()
+
+def game_loop():
+    global running, game_over, player_speed, criminal_speed, points_collected, player_tripped, criminal_tripped, player_trip_time, criminal_trip_time, rocks, points, last_rock_spawn, last_point_spawn
+
+    while running:
+        if game_over:
+            print("Game Over! You lost.")
+            break
+
+        current_time = pygame.time.get_ticks()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_LEFT]:
+            player.x -= player_speed
+        if keys[pygame.K_RIGHT]:
+            player.x += player_speed
+        if keys[pygame.K_UP]:
+            player.y -= player_speed
+        if keys[pygame.K_DOWN]:
+            player.y += player_speed
+
+        if player.x < 0:
+            player.x = 0
+        if player.x > WIDTH - PLAYER_WIDTH:
+            player.x = WIDTH - PLAYER_WIDTH
+        if player.y < 0:
+            player.y = 0
+        if player.y > HEIGHT - PLAYER_HEIGHT:
+            player.y = HEIGHT - PLAYER_HEIGHT
+
+        criminal_keys = pygame.key.get_pressed()
+        if criminal_keys[pygame.K_a]:
+            criminal.x -= criminal_speed
+        if criminal_keys[pygame.K_d]:
+            criminal.x += criminal_speed
+        if criminal_keys[pygame.K_w]:
+            criminal.y -= criminal_speed
+        if criminal_keys[pygame.K_s]:
+            criminal.y += criminal_speed
+
+        if criminal.x < 0:
+            criminal.x = 0
+        if criminal.x > WIDTH - CRIMINAL_WIDTH:
+            criminal.x = WIDTH - CRIMINAL_WIDTH
+        if criminal.y < 0:
+            criminal.y = 0
+        if criminal.y > HEIGHT - CRIMINAL_HEIGHT:
+            criminal.y = HEIGHT - CRIMINAL_HEIGHT
+
+        for rock in rocks:
+            rock.y += rock_speed
+            if rock.y > HEIGHT:
+                rocks.remove(rock)
+            if check_collision(player, rock) and not player_tripped:
+                player_tripped = True
+                player_trip_time = current_time
+
+        for point in points:
+            point.y += rock_speed
+            if point.y > HEIGHT:
+                points.remove(point)
+            if check_collision(player, point):
+                points.remove(point)
+                points_collected += 1
+                if points_collected % 10 == 0:
+                    player_speed += SPEED_INCREASE
+
+        if check_collision(player, criminal):
+            game_over = True
+            print("You caught the criminal! You win!")
+            break
+
+        if player_tripped and current_time - player_trip_time >= 5000:
+            player_tripped = False
+            player_speed = 3
+
+        if criminal_tripped and current_time - criminal_trip_time >= 10000:
+            criminal_tripped = False
+            criminal_speed = 3
+
+        if current_time - last_rock_spawn > rock_spawn_time:
+            rocks.append(spawn_rock())
+            last_rock_spawn = current_time
+
+        if current_time - last_point_spawn > point_spawn_time:
+            points.append(spawn_point())
+            last_point_spawn = current_time
+
+        draw()
+
+        pygame.time.Clock().tick(60)
+
+game_loop()
+
+pygame.quit()
