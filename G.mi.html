@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Video Dating App</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Welcome to LiveSwap</h1>
+      <p>Connect with people instantly via live video.</p>
+    </header>
+
+    <div class="profile-section">
+      <div class="profile-card">
+        <h2>Your Profile</h2>
+        <button id="start-video">Start Video</button>
+      </div>
+      
+      <div class="chat-section">
+        <h2>Connect with Matches</h2>
+        <button id="connect-video">Start Connection</button>
+        <div id="video-container">
+          <video id="user-video" autoplay muted></video>
+          <video id="match-video" autoplay></video>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <p>Developed by LiveSwap. All rights reserved.</p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
+<ALOASK-SEPARATE-EDITORS>* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f9;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+
+.container {
+  width: 90%;
+  max-width: 1200px;
+  text-align: center;
+}
+
+header {
+  background-color: #3a3a3a;
+  color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.profile-section {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+}
+
+.profile-card {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  width: 45%;
+}
+
+.chat-section {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  width: 45%;
+}
+
+#video-container {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+video {
+  width: 48%;
+  height: auto;
+  border-radius: 8px;
+}
+
+button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 20px;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+footer {
+  margin-top: 40px;
+  font-size: 14px;
+  color: #333;
+}
+<ALOASK-SEPARATE-EDITORS>// Handling the start of the video call
+const startVideoBtn = document.getElementById('start-video');
+const connectVideoBtn = document.getElementById('connect-video');
+const userVideo = document.getElementById('user-video');
+const matchVideo = document.getElementById('match-video');
+
+// Set up basic video stream
+let userStream;
+let peerConnection;
+
+startVideoBtn.addEventListener('click', startVideo);
+connectVideoBtn.addEventListener('click', startConnection);
+
+// Function to get user's video
+async function startVideo() {
+  try {
+    userStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    userVideo.srcObject = userStream;
+    console.log("User video stream started.");
+  } catch (error) {
+    console.error("Error accessing media devices.", error);
+  }
+}
+
+// Function to establish a connection with another user (mock setup for now)
+async function startConnection() {
+  if (!userStream) {
+    alert("Please start your video first!");
+    return;
+  }
+
+  try {
+    // For the purpose of this prototype, let's simulate receiving a peer's video
+    // In a real application, you'd set up WebRTC to exchange streams between peers.
+    const peerStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    matchVideo.srcObject = peerStream;
+    console.log("Peer video stream started.");
+
+    // Here, you'd connect the user with another peer using WebRTC signaling (to be implemented).
+  } catch (error) {
+    console.error("Error setting up peer connection.", error);
+  }
+}
